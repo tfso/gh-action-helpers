@@ -17,6 +17,14 @@ inputs:
   push:
     required: true
     description: 'Should image be pushed to registry'
+  file:
+    required: false
+    description: 'Which Dockerfile to run'
+    default: Dockerfile
+  context:
+    required: true
+    description: 'Build context'
+    default: .
 runs:
   using: "composite"
   steps:
@@ -35,7 +43,8 @@ runs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
-        context: .
+        context: ${{ steps.context }}
         push: ${{ inputs.push }}
         tags: ${{ inputs.image }}
         labels: ${{ steps.meta.outputs.labels }}
+        file: ${{ inputs.file }}
