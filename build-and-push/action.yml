@@ -22,7 +22,7 @@ inputs:
     description: 'Which Dockerfile to run'
     default: Dockerfile
   context:
-    required: true
+    required: false
     description: 'Build context'
     default: .
 runs:
