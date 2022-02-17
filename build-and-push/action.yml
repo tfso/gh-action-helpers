@@ -1,0 +1,41 @@
+name: 'Build and push'
+description: 'Build and push docker image'
+inputs:
+  registry:
+    description: 'Docker registry URI'
+    required: false
+    default: docker.io
+  username: 
+    description: 'Docker username'
+    required: false
+  password:
+    description: 'Docker password'
+    required: true
+  image:
+    required: true
+    description: 'Name of image, included tag'
+  push:
+    required: true
+    description: 'Should image be pushed to registry'
+runs:
+  using: "composite"
+  steps:
+    - name: Log into registry ${{ inputs.registry }}
+      uses: docker/login-action@v1
+      with:
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
+
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@v3
+      with:
+        images: ${{ inputs.image }}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: ${{ inputs.push }}
+        tags: ${{ inputs.image }}
+        labels: ${{ steps.meta.outputs.labels }}
