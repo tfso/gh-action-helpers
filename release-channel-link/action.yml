@@ -1,5 +1,5 @@
-name: 'Build and push'
-description: 'Build and push docker image'
+name: 'Release channel link'
+description: 'Creates a release channel link and adds it as a comment to the PR. Can only be used with PR trigger'
 inputs:
   base-url:
     description: 'TFSO release channel base url'
