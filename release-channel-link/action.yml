@@ -1,0 +1,41 @@
+name: 'Build and push'
+description: 'Build and push docker image'
+inputs:
+  base-url:
+    description: 'TFSO release channel base url'
+    required: false
+    default: 'https://beta.24sevenoffice.com'
+  
+  module:
+    description: 'Website module'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Clean branch name
+      shell: bash
+      if: github.ref != format('refs/heads/{0}', env.MAIN_BRANCH)
+      id: branch
+      run: echo "::set-output name=clean_title::$(echo ${{ github.head_ref }} | sed 's/[^a-zA-Z0-9]/-/g')"
+
+    - uses: actions/github-script@v6
+      name: Create comment
+      env:
+        RELEASE_CHANNEL_BASE_URI: ${{ inputs.base-url }}
+        TFSO_MODULE: ${{ inputs.module }}
+        BRANCH: ${{ steps.branch.outputs.clean_title }}
+        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+      with:
+        result-encoding: string
+        script: |
+          const { RELEASE_CHANNEL_BASE_URI, TFSO_MODULE, BRANCH } = process.env
+          const releaseChannelLink = `${RELEASE_CHANNEL_BASE_URI}/modules/${TFSO_MODULE}/?channel=${BRANCH}`
+          github.rest.issues.createComment({
+            issue_number: context.payload.pull_request.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `### Release channel link 👇 
+            ### ${releaseChannelLink}`
+          })
+          return releaseChannelLink
