@@ -35,7 +35,7 @@ outputs:
     value: ${{ steps.branch.outputs.prerelease }}
   deploy: 
     description: always 'true' if main branch, and always 'false' for other branchers except if a commit contains '#deploy_branch'
-    value: ${{ steps.branch.outputs.deploy }}
+    value: ${{ steps.branch.outputs.deploy || 'true' }}
 
 runs:
   using: 'composite'     
