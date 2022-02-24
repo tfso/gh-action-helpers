@@ -13,12 +13,14 @@ inputs:
   DEFAULT_BUMP: 
     description: may be major, minor or patch, defaults to patch
     required: false
+    default: 'patch'
   INITIAL_VERSION:
     description: initial version, nice if migrating from other build platforms
     required: false
   NODE_VERSION: 
     description: node version, defaults to 14
     required: false
+    default: '14'
 
 outputs:
   version: 
@@ -44,7 +46,7 @@ runs:
     - name: setup
       uses: actions/setup-node@v2
       with:
-        node-version: ${{ inputs.NODE_VERSION || 14 }}
+        node-version: ${{ inputs.NODE_VERSION }}
         registry-url: 'https://npm.pkg.github.com'
         scope: '@tfso'
 
@@ -94,7 +96,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         INITIAL_VERSION: ${{ inputs.INITIAL_VERSION }}
-        DEFAULT_BUMP: ${{ inputs.DEFAULT_BUMP || 'patch' }}
+        DEFAULT_BUMP: ${{ inputs.DEFAULT_BUMP }}
         PRERELEASE_SUFFIX: ${{ steps.branch.outputs.prerelease }}
         WITH_V: true
         DRY_RUN: true
