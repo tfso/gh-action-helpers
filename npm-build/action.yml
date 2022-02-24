@@ -21,6 +21,10 @@ inputs:
     description: node version, defaults to 14
     required: false
     default: '14'
+  PRUNE_PRODUCTION:
+    description: prune for production
+    required: false
+    default: true
 
 outputs:
   version: 
@@ -92,6 +96,7 @@ runs:
 
     - shell: bash
       name: clean up
+      if: inputs.PRUNE_PRODUCTION == 'true'
       run: |
         npm prune --production
 
