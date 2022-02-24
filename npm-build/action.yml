@@ -1,14 +1,14 @@
 name: 'Build npm package'
 
 inputs:
-  NPM_TOKEN:
-    description: access token to @tfso NPM registry
-    required: true
   GITHUB_TOKEN:
     description: access to current github repository
     required: true
   GITHUB_GLOBAL_TOKEN:
     description: access to github repositories for legacy packages
+    required: false
+  NPM_TOKEN:
+    description: access token to @tfso NPM registry
     required: false
   DEFAULT_BUMP: 
     description: may be major, minor or patch, defaults to patch
@@ -47,8 +47,6 @@ runs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ inputs.NODE_VERSION }}
-        registry-url: 'https://npm.pkg.github.com'
-        scope: '@tfso'
 
     - shell: bash
       id: branch
@@ -59,7 +57,7 @@ runs:
         echo "::set-output name=prerelease::$(echo ${{ github.ref_name }} | sed 's/\([a-zA-Z0-9]\+\).*/\1/g')"
 
     - shell: bash
-      name: git access rewrite
+      name: git access
       if: inputs.GITHUB_GLOBAL_TOKEN
       run: |
         git config --global url."https://api:${ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
@@ -69,11 +67,18 @@ runs:
         ACCESS_TOKEN: ${{ inputs.GITHUB_GLOBAL_TOKEN }}
 
     - shell: bash
+      name: npm access token
+      if: inputs.NPM_TOKEN
+      run: |
+        npm config set @tfso:registry=https://npm.pkg.github.com --userconfig .npmrc
+        npm config set //npm.pkg.github.com/:_authToken=${NPM_TOKEN} --userconfig .npmrc
+      env:
+        NPM_TOKEN: ${{ inputs.NPM_TOKEN }}
+
+    - shell: bash
       name: install
       run: |
         npm ci
-      env:
-        NPM_TOKEN: ${{ inputs.NPM_TOKEN }}
 
     - shell: bash
       name: build
