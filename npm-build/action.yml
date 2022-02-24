@@ -1,0 +1,105 @@
+name: 'Build npm package'
+
+inputs:
+  NPM_TOKEN:
+    description: access token to @tfso NPM registry
+    required: true
+  GITHUB_TOKEN:
+    description: access to current github repository
+    required: true
+  GITHUB_GLOBAL_TOKEN:
+    description: access to github repositories for legacy packages
+    required: false
+  DEFAULT_BUMP: 
+    description: may be major, minor or patch, defaults to patch
+    required: false
+  INITIAL_VERSION:
+    description: initial version, nice if migrating from other build platforms
+    required: false
+  NODE_VERSION: 
+    description: node version, defaults to 14
+    required: false
+
+outputs:
+  version: 
+    description: the full version including 'v', will be prereleased if build is a branch
+    value: ${{ steps.semver.outputs.new_tag }}
+  prerelease: 
+    description: prerelease suffix if building a branch, prerelease of branch 'feature/my-feature' will be 'feature'
+    value: ${{ steps.branch.outputs.prerelease }}
+  deploy: 
+    description: always 'true' if main branch, and always 'false' for other branchers except if a commit contains '#deploy_branch'
+    value: ${{ steps.branch.outputs.deploy }}
+
+runs:
+  using: 'composite'     
+  steps: 
+    - name: checkout
+      uses: actions/checkout@v2
+      with:
+        token: ${{ inputs.GITHUB_TOKEN }}
+        fetch-depth: '0' # important for versioning
+        persist-credentials: false # important for legacy github packages
+
+    - name: setup
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ inputs.NODE_VERSION || 14 }}
+        registry-url: 'https://npm.pkg.github.com'
+        scope: '@tfso'
+
+    - shell: bash
+      id: branch
+      if: github.ref != format('refs/heads/{0}', github.repository.default_branch)
+      name: gather branch information
+      run: |
+        echo "::set-output name=deploy::${{ contains(github.event.head_commit.message, '#deploy_branch') && 'true' || 'false' }}"
+        echo "::set-output name=prerelease::$(echo ${{ github.ref_name }} | sed 's/\([a-zA-Z0-9]\+\).*/\1/g')"
+
+    - shell: bash
+      name: git access rewrite
+      if: inputs.GITHUB_GLOBAL_TOKEN
+      run: |
+        git config --global url."https://api:${ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
+        git config --global url."https://ssh:${ACCESS_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
+        git config --global url."https://git:${ACCESS_TOKEN}@github.com/".insteadOf "git@github.com:"
+      env: 
+        ACCESS_TOKEN: ${{ inputs.GITHUB_GLOBAL_TOKEN }}
+
+    - shell: bash
+      name: install
+      run: |
+        npm ci
+      env:
+        NPM_TOKEN: ${{ inputs.NPM_TOKEN }}
+
+    - shell: bash
+      name: build
+      run: |
+        npm run build
+
+    - shell: bash
+      name: tests
+      run: |
+        npm test
+
+    - shell: bash
+      name: clean up
+      run: |
+        npm prune --production
+
+    - name: create version
+      id: semver
+      uses: anothrNick/github-tag-action@1.36.0
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        INITIAL_VERSION: ${{ inputs.INITIAL_VERSION }}
+        DEFAULT_BUMP: ${{ inputs.DEFAULT_BUMP || 'patch' }}
+        PRERELEASE_SUFFIX: ${{ steps.branch.outputs.prerelease }}
+        WITH_V: true
+        DRY_RUN: true
+        
+    - shell: bash
+      name: version package
+      run: |
+        npm version ${{ steps.semver.outputs.new_tag }} --no-git-tag-version --ignore-scripts
