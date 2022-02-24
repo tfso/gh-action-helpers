@@ -54,7 +54,7 @@ runs:
 
     - shell: bash
       id: branch
-      if: ${{ github.ref != format('refs/heads/{0}', github.repository.default_branch) }}
+      if: github.ref_name != github.event.repository.default_branch
       name: gather branch information
       run: |
         echo "::set-output name=deploy::${{ contains(github.event.head_commit.message, '#deploy_branch') && 'true' || 'false' }}"
