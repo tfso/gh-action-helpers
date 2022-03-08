@@ -10,6 +10,9 @@ inputs:
   NPM_TOKEN:
     description: access token to @tfso NPM registry
     required: false
+  FONT_AWESOME_TOKEN:
+    description: access token to fortawesome NPM registry
+    required: false
   DEFAULT_BUMP: 
     description: may be major, minor or patch, defaults to patch
     required: false
@@ -78,6 +81,15 @@ runs:
         npm config set //npm.pkg.github.com/:_authToken=${NPM_TOKEN} --userconfig .npmrc
       env:
         NPM_TOKEN: ${{ inputs.NPM_TOKEN }}
+
+    - shell: bash
+      name: npm access token
+      if: inputs.FONT_AWESOME_TOKEN
+      run: |
+        npm config set @fortawesome:registry=https://npm.fontawesome.com/ --userconfig .npmrc
+        npm config set //npm.fontawesome.com/:_authToken=${NPM_TOKEN} --userconfig .npmrc
+      env: 
+        NPM_TOKEN: ${{ inputs.FONT_AWESOME_TOKEN }}
 
     - shell: bash
       name: install
