@@ -72,7 +72,7 @@ runs:
           echo "::set-output name=prerelease::$(echo ${{ github.ref_name }} | sed 's/[^a-zA-Z0-9]/-/g')"
         fi
       env:
-        TRUNCATE: ${{ inputs.TRUNCATE_PRERELEASE === false ? "0" : "1" }}
+        TRUNCATE: ${{ inputs.TRUNCATE_PRERELEASE == false && '0' || '1' }}
 
     - shell: bash
       name: git access
