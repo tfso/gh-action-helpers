@@ -28,13 +28,17 @@ inputs:
     description: prune for production
     required: false
     default: true
+  TRUNCATE_PRERELEASE:
+    description: 
+    required: false
+    default: true
 
 outputs:
   version: 
     description: the full version including 'v', will be prereleased if build is a branch
     value: ${{ steps.semver.outputs.new_tag }}
   prerelease: 
-    description: prerelease suffix if building a branch, prerelease of branch 'feature/my-feature' will be 'feature'
+    description: prerelease suffix for PR builds and will truncate branchname to first word ('feature/my-feature' will be 'feature') unless TRUNCATE_PRERELEASE is set to `false`
     value: ${{ steps.branch.outputs.prerelease }}
   deploy: 
     description: always 'true' if main branch, and always 'false' for other branchers except if a commit contains '#deploy_branch'
@@ -61,7 +65,14 @@ runs:
       name: gather branch information
       run: |
         echo "::set-output name=deploy::${{ contains(github.event.head_commit.message, '#deploy_branch') && 'true' || 'false' }}"
-        echo "::set-output name=prerelease::$(echo ${{ github.ref_name }} | sed 's/\([a-zA-Z0-9]\+\).*/\1/g')"
+
+        if [ $TRUNCATE == "1" ]; then
+          echo "::set-output name=prerelease::$(echo ${{ github.ref_name }} | sed 's/\([a-zA-Z0-9]\+\).*/\1/g')"
+        else
+          echo "::set-output name=prerelease::$(echo ${{ github.ref_name }} | sed 's/[^a-zA-Z0-9]/-/g')"
+        fi
+      env:
+        TRUNCATE: ${{ inputs.TRUNCATE_PRERELEASE === false ? "0" : "1" }}
 
     - shell: bash
       name: git access
