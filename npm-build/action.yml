@@ -31,7 +31,7 @@ inputs:
   TRUNCATE_PRERELEASE:
     description: 
     required: false
-    default: true
+    default: false
 
 outputs:
   version: 
