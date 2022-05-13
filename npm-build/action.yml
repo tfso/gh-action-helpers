@@ -53,6 +53,7 @@ runs:
         token: ${{ inputs.GITHUB_TOKEN }}
         fetch-depth: '0' # important for versioning
         persist-credentials: false # important for legacy github packages
+        submodules: true
 
     - name: setup
       uses: actions/setup-node@v2
