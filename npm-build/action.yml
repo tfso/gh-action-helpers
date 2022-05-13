@@ -29,7 +29,11 @@ inputs:
     required: false
     default: true
   TRUNCATE_PRERELEASE:
-    description: 
+    description: truncate branchname to first word
+    required: false
+    default: false
+  INCLUDE_SUBMODULES:
+    description: include submodules at checkout
     required: false
     default: false
 
@@ -53,7 +57,7 @@ runs:
         token: ${{ inputs.GITHUB_TOKEN }}
         fetch-depth: '0' # important for versioning
         persist-credentials: false # important for legacy github packages
-        submodules: true
+        submodules: ${{ inputs.INCLUDE_SUBMODULES }}
 
     - name: setup
       uses: actions/setup-node@v2
