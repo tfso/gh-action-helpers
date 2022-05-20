@@ -29,7 +29,11 @@ inputs:
     required: false
     default: true
   TRUNCATE_PRERELEASE:
-    description: 
+    description: truncate branchname to first word
+    required: false
+    default: false
+  INCLUDE_SUBMODULES:
+    description: include submodules at checkout
     required: false
     default: false
 
@@ -53,6 +57,7 @@ runs:
         token: ${{ inputs.GITHUB_TOKEN }}
         fetch-depth: '0' # important for versioning
         persist-credentials: false # important for legacy github packages
+        submodules: ${{ inputs.INCLUDE_SUBMODULES }}
 
     - name: setup
       uses: actions/setup-node@v2
@@ -79,6 +84,7 @@ runs:
       name: git access
       if: inputs.GITHUB_GLOBAL_TOKEN
       run: |
+        git config --global url."https://".insteadOf "git://"
         git config --global url."https://api:${ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
         git config --global url."https://ssh:${ACCESS_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
         git config --global url."https://git:${ACCESS_TOKEN}@github.com/".insteadOf "git@github.com:"

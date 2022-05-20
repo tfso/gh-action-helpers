@@ -79,6 +79,7 @@ runs:
       name: git access
       if: inputs.GITHUB_GLOBAL_TOKEN
       run: |
+        git config --global url."https://".insteadOf "git://"
         git config --global url."https://api:${ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
         git config --global url."https://ssh:${ACCESS_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
         git config --global url."https://git:${ACCESS_TOKEN}@github.com/".insteadOf "git@github.com:"
