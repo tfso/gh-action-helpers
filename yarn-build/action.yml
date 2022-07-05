@@ -20,6 +20,9 @@ inputs:
   INITIAL_VERSION:
     description: initial version, nice if migrating from other build platforms
     required: false
+  CUSTOM_TAG:
+    description: Set a custom tag, useful when generating tag based on f.ex FROM image in a docker image. Setting this tag will invalidate any other settings set!
+    required: false
   NODE_VERSION: 
     description: node version, defaults to 14
     required: false
@@ -29,7 +32,7 @@ inputs:
     required: false
     default: true
   TRUNCATE_PRERELEASE:
-    description: 
+    description: truncate branchname to first word
     required: false
     default: false
 
@@ -133,6 +136,7 @@ runs:
         INITIAL_VERSION: ${{ inputs.INITIAL_VERSION }}
         DEFAULT_BUMP: ${{ inputs.DEFAULT_BUMP }}
         PRERELEASE_SUFFIX: ${{ steps.branch.outputs.prerelease }}
+        CUSTOM_TAG: ${{ inputs.CUSTOM_TAG }}
         WITH_V: false
         DRY_RUN: true
         
